@@ -8,7 +8,13 @@ prerequisites:
 - intro
 - mcmc
 - ctmc
-exclude_files: 
+include_files:
+    - morph_tree/data/bears.nex
+    - morph_tree/scripts/mcmc_mk.Rev
+    - morph_tree/scripts/mcmc_mkv.Rev
+    - morph_tree/scripts/mcmc_mkv_discretized.Rev
+    - morph_tree/scripts/mcmc_mkv_hyperprior.Rev
+exclude_files:
 index: true
 redirect: false
 ---
@@ -38,9 +44,9 @@ RevBayes {% cite Hoehna2016b %}.
 {% subsection Overview of Discrete Morphology Models %}
 
 {% figure mk_graphical_model %}
-<img src="figures/tikz/Mk_model.png" /> 
-{% figcaption %} 
-Graphical model showing the Mk model (left panel). 
+<img src="figures/tikz/Mk_model.png" />
+{% figcaption %}
+Graphical model showing the Mk model (left panel).
 Rev code specifying the Mk model is on the right-hand panel.
 {% endfigcaption %}
 {% endfigure %}
@@ -97,7 +103,7 @@ a phylogeny with the Mk model, and two useful extensions to the model.
 {% subsection The Mk Model | subsec_Mk_model %}
 
 The Mk model is a generalization of the Jukes-Cantor model of nucleotide
-sequence evolution, which we discussed in {% page_ref ctmc %}. 
+sequence evolution, which we discussed in {% page_ref ctmc %}.
 The Q matrix for a two-state Mk model looks like so:
 
 $$Q = \begin{pmatrix} -\mu_0 & \mu_{01} \\
@@ -109,7 +115,7 @@ This matrix can be expanded to accommodate multi-state data, as well:
 $$Q = \begin{pmatrix} -\mu_0 & \mu_{01} & \mu_{02} & \mu_{03} \\
 \mu_{10} & -\mu_1  & \mu_{12} & \mu_{13} \\
 \mu_{20} & \mu_{21} & -\mu_2  & \mu_{23} \\
-\mu_{30} & \mu_{31} & \mu_{32} & -\mu_3 
+\mu_{30} & \mu_{31} & \mu_{32} & -\mu_3
 \end{pmatrix} \mbox{  ,}$$
 
 However, the Mk model sets transitions to be equal from any state to any
@@ -214,8 +220,8 @@ them from the scripts provided.
 When you execute RevBayes in this exercise, you will do so within the
 main directory you created (`RB_DiscreteMorphology_Tutorial`), thus,
 if you are using a Unix-based operating system, we recommend that you
-add the RevBayes binary to your path. Alternatively make sure that you set the 
-working directory to, for example, **RB_DiscreteMorphology_Tutorial** if this is 
+add the RevBayes binary to your path. Alternatively make sure that you set the
+working directory to, for example, **RB_DiscreteMorphology_Tutorial** if this is
 the directory you stored the scripts and data in.
 
 
@@ -223,17 +229,17 @@ the directory you stored the scripts and data in.
 {% subsection Creating Rev Files | subsec_creating_files %}
 
 In this exercise, you will work primarily in your text editor and
-create a set of files that will be easily managed and interchanged. 
+create a set of files that will be easily managed and interchanged.
 In this first section, you will write the following file
 from scratch and save them in the `scripts` directory:
 
--   `mcmc_mk.Rev`: the *Rev* file that loads the data, 
+-   `mcmc_mk.Rev`: the *Rev* file that loads the data,
 specifies the model describing discrete morphological
-character change (binary characters), 
+character change (binary characters),
 and specifies the monitors and MCMC sampler.
 
 All of the files that you will create are also provided in the
-RevBayes tutorial here (see the top of this webpage). 
+RevBayes tutorial here (see the top of this webpage).
 Please refer to these files to verify or troubleshoot your own scripts.
 
 >Open your text editor and create the Rev-script file called **mcmc_Mk.Rev** in the
@@ -245,7 +251,7 @@ Please refer to these files to verify or troubleshoot your own scripts.
 
 In this section you will begin the file and write the Rev commands for
 loading in the taxon list and managing the data matrices. Then, starting
-in section {% ref subsec_Mk_model %}, you will move on to specifying each of 
+in section {% ref subsec_Mk_model %}, you will move on to specifying each of
 the model components. Once the model specifications are
 complete, you will complete the script with the instructions given in section
 {% ref subsec_complete_MCMC %}.
@@ -265,9 +271,9 @@ morpho <- readDiscreteCharacterData("data/bears.nex")
 
 {% subsection Create Helper Variables | subsec_var %}
 
-Before we begin writing the Rev scripts for each of the models, 
+Before we begin writing the Rev scripts for each of the models,
 we need to instantiate a couple “helper variables” that will
-be used by downstream parts of our model specification. 
+be used by downstream parts of our model specification.
 
 Create a new constant node called `num_taxa` that is equal to the number
 of species in our analysis (18) and a constant node called `num_branches` representing
@@ -275,12 +281,12 @@ the number of branches in the tree. We will also create a constant node of
 the taxon names. This list will be used to initialize the tree.
 ```
 taxa <- morpho.names()
-num_taxa <- morpho.size() 
+num_taxa <- morpho.size()
 num_branches <- 2 * num_taxa - 2
 ```
-Next, create two workspace variables called `moves` and `monitors`. These variable 
+Next, create two workspace variables called `moves` and `monitors`. These variable
 vectors containing all of the MCMC moves and monitors used
-to propose new states for every stochastic node in the model graph. 
+to propose new states for every stochastic node in the model graph.
 ```
 moves    = VectorMoves()
 monitors = VectorMonitors()
@@ -292,7 +298,7 @@ assignment operator `=` instead of the constant node assignment `<-`.
 
 {% subsection The Mk Model | subsec_Mk_model %}
 
-First, we will create a joint prior on the branch lengths and tree topology. 
+First, we will create a joint prior on the branch lengths and tree topology.
 This should be familiar from the {% page_ref ctmc %}
 ```
 br_len_lambda ~ dnExp(0.2)
@@ -323,11 +329,11 @@ rates_morpho := fnDiscretizeGamma( alpha_morpho, alpha_morpho, 4 )
 moves.append( mvScale(alpha_morpho, lambda=1, weight=2.0) )
 ```
 
-Lastly, we set up the CTMC. This should also be familiar from the {% page_ref ctmc %}. 
+Lastly, we set up the CTMC. This should also be familiar from the {% page_ref ctmc %}.
 We see some familiar pieces: tree, $Q$ matrix and site_rates.
 We also have two new keywords: data type and coding. The data type
 argument specifies the type of data - in our case, “Standard”, the
-specification for morphology. 
+specification for morphology.
 ```
 phyMorpho ~ dnPhyloCTMC(tree=phylogeny, siteRates=rates_morpho, Q=Q_morpho, type="Standard")
 phyMorpho.clamp(morpho)
@@ -474,15 +480,15 @@ specified with the monitors ({% ref subsubsec_Monitors %}).
 {% section Ascertainment Bias | sec_ascertainment_bias %}
 
 As discussed earlier in the section {% ref subsec_Ascertainment_Bias %}, we also need to
-correct for ascertainment bias. 
+correct for ascertainment bias.
 
->Create a copy of your previous `Rev` script, and call it *mcmc_Mkv.Rev*. 
+>Create a copy of your previous `Rev` script, and call it *mcmc_Mkv.Rev*.
 >You will need to modify the `Rev`
 >code provided in this section in this file.
 {:.instruction}
 
-In `RevBayes` it is actually very simple to add a correction for ascertainment bias. 
-You only need to set the option `coding="variable"` in the `dnPhyloCTMC`. Coding specifies 
+In `RevBayes` it is actually very simple to add a correction for ascertainment bias.
+You only need to set the option `coding="variable"` in the `dnPhyloCTMC`. Coding specifies
 what type of ascertainment bias is expected. We are using the `variable` correction,
 as we have no invariant character in our matrix. If we also lacked
 parsimony non-informative characters, we would use the coding `informative`.
@@ -505,8 +511,8 @@ That’s all you need to do! Now run this script in RevBayes.
 
 
 {% figure morpho_graphical_model %}
-<img src="figures/tikz/morpho_gm.png" width="400" /> 
-{% figcaption %} 
+<img src="figures/tikz/morpho_gm.png" width="400" />
+{% figcaption %}
 Graphical model demonstrating the
 discretized Beta distribution for allowing variable state frequencies.
 {% endfigcaption %}
@@ -548,7 +554,7 @@ previous exercise. For example, you might call your output file
 source statement to indicate the new model file.
 
 
-We will use a discretized Beta distribution to place a prior on state frequencies. 
+We will use a discretized Beta distribution to place a prior on state frequencies.
 The Beta distribution has two parameters, $\alpha$ and $\beta$. These two
 parameters specify the shape of the distribution. State frequencies will
 be evaluated according to this distribution, in the same way that rate
@@ -567,7 +573,7 @@ Above, we initialized the number of categories, the parameters to the
 Beta distribution, and the moves on the parameters to the Beta.
 
 Next, we set the categories to each represent a quadrant of the Beta
-distribution specified by the `beta_scale`. 
+distribution specified by the `beta_scale`.
 ```
 cats := fnDiscretizeBeta(beta_scale, beta_scale, num_cats)
 ```
@@ -624,8 +630,8 @@ command-clicking all three files.
 
 
 {% figure add_files %}
-<img src="figures/AddFiles.png" width="50%"/> 
-{% figcaption %} 
+<img src="figures/AddFiles.png" width="50%"/>
+{% figcaption %}
 Highlight all three files for model comparison.
 {% endfigcaption %}
 {% endfigure %}
@@ -637,18 +643,18 @@ frequency heterogeneity. The discretized model and the Dirichlet
 model both represent improvements, but are fairly close in likelihood
 score to each other ({% ref tracer_llik %}). Likely, we would need to
 perform stepping stone model assessment to truly tell if the more
-complicated model is statistically justified. 
-This analysis is too complicated and time-consuming for this tutorial period, 
+complicated model is statistically justified.
+This analysis is too complicated and time-consuming for this tutorial period,
 but you will find instructions for performing the analysis in
 {% page_ref model_selection_bayes_factors/bf_intro %}.
 
 {% figure tracer_llik %}
-<img src="figures/likelihoods.png" width="100%"/> 
-{% figcaption %} 
+<img src="figures/likelihoods.png" width="100%"/>
+{% figcaption %}
 Comparison of likelihood scores for all three models.
 {% endfigcaption %}
 {% endfigure %}
- 
+
 
 Click on the `Trace` panel. In the lower left hand corner, you will
 notice an option to color each trace by the file it came from. Choose
@@ -662,9 +668,9 @@ greatly increasing model complexity. Therefore, we would need to run the
 MCMC chains longer if we were to use these analyses in a paper.
 
 {% figure coltrace %}
-<img src="figures/colortrace.png" width="80%"/> 
-{% figcaption %} 
-The Trace window. The traces are colored by which version of the Mk model 
+<img src="figures/colortrace.png" width="80%"/>
+{% figcaption %}
+The Trace window. The traces are colored by which version of the Mk model
 they correspond to.
 {% endfigcaption %}
 {% endfigure %}
@@ -683,8 +689,8 @@ tab in the upper part of the window, highlight all of the loaded Trace
 Files, then select `tree_length` from the list of Traces.
 
 {% figure tracer_tree_length %}
-<img src="figures/results/tracer_tree_length.png" width="50%" /> 
-{% figcaption %} 
+<img src="figures/results/tracer_tree_length.png" width="50%" />
+{% figcaption %}
 Posterior tree length estimates.
 {% endfigcaption %}
 {% endfigure %}
@@ -700,15 +706,15 @@ categories to have values approaching 0.5, which approximates a
 symmetric Mk model.
 
 {% figure tracer_cats %}
-<img src="figures/results/cats.png" width="50%" /> 
-{% figcaption %} 
+<img src="figures/results/cats.png" width="50%" />
+{% figcaption %}
 Posterior discretized state frequencies for the discrete-beta model.
 {% endfigcaption %}
 {% endfigure %}
 
 {% figure tracer_alpha_beta %}
-<img src="figures/results/alpha_beta.png" width="50%" /> 
-{% figcaption %} 
+<img src="figures/results/alpha_beta.png" width="50%" />
+{% figcaption %}
 Posterior alpha and beta parameters for the discrete-beta model.
 {% endfigcaption %}
 {% endfigure %}
@@ -736,8 +742,8 @@ phylogenetic information is generated through model choice, let's
 compare our topological estimates across models.
 
 {% figure mk_discretized_majrule %}
-<img src="figures/results/mk_discretized_majrule_tre.png" width="75%" /> 
-{% figcaption %} 
+<img src="figures/results/mk_discretized_majrule_tre.png" width="75%" />
+{% figcaption %}
 Majority rule consensus tree for the beta-discretized Mkv analysis.
 {% endfigcaption %}
 {% endfigure %}
@@ -752,4 +758,3 @@ whether your results are sensitive to model assumptions, such as the
 degree of model complexity, and any mechanistic assumptions that
 motivate the model's design. In this case, our tree estimate appears to
 be robust to model complexity.
-
