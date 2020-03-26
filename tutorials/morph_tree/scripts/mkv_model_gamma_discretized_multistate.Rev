@@ -1,6 +1,6 @@
 ################################################################################
 #
-# RevBayes Example: Inferring a Phylogeny of Fossil Bears Using the Mk Model
+# RevBayes Example: Inferring a Phylogeny of Fossil Echinoderms Using the Mk Model
 #
 # This file: Specifies the discretized morphological substitution model  ...
 #
@@ -52,10 +52,3 @@ for (i in 2:n_max_states) {
     }
 }
 
-
-# Set up Gamma-distributed rate variation.
-alpha_morpho ~ dnUniform( 0.0, 1E6 )
-rates_morpho := fnDiscretizeGamma( alpha_morpho, alpha_morpho, 4 )
-
-# Moves on the parameters to the Gamma distribution.
-moves.append( mvScale(alpha_morpho, lambda=1, weight=2.0) )
